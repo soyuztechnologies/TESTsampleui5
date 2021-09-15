@@ -1,5 +1,5 @@
 sap.ui.define([
-    'sap/ui/core/mvc/Controller',
+    'mickey/controller/BaseController',
     'sap/m/Button'
 ], function(Controller, oBtn) {
     return Controller.extend("mickey.controller.Main",{

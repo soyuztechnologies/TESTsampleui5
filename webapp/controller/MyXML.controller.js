@@ -1,8 +1,10 @@
 sap.ui.define([
 	"mickey/controller/BaseController",
 	"sap/ui/model/json/JSONModel",
-	"mickey/model/models"
-], function(Controller, JSONModel, myModel) {
+    "mickey/model/models",
+    "mickey/util/lifeSaver",
+    "sap/m/MessageToast"
+], function(Controller, JSONModel, myModel, lifeSaver, MessageToast) {
 	//'use strict';
 	return Controller.extend("mickey.controller.MyXML", {
 		//Once my Controller object is created then only initialization should happen
@@ -21,13 +23,47 @@ sap.ui.define([
             //Step 3: Make model aware to the app
             //this is our default model
             sap.ui.getCore().setModel(oModel);
+            //var oXMLModel = myModel.createXMLModel();
+            //sap.ui.getCore().setModel(oXMLModel);
             //named model so that it will not overwrite my previous model
-			sap.ui.getCore().setModel(oModelGOT, "fire");
+            sap.ui.getCore().setModel(oModelGOT, "fire");
+            
+            var oResourceModel = myModel.createResourceModel();
+            sap.ui.getCore().setModel(oResourceModel,"i18n");
 
-            this.getView().byId("idEmpSal").bindValue("/empStr/salary");
-            this.getView().byId("idEmpCurr").bindProperty("value","/empStr/currency");
+            var oTab = this.getView().byId("myTable");
+            oTab.bindAggregation("rows", "/empTab");
+            //oTab.bindRows("/empTab/row");
+            // this.getView().byId("idEmpSal").bindValue("/empStr/salary");
+            // this.getView().byId("idEmpCurr").bindProperty("value","/empStr/currency");
 
-		},
+        },
+        superman: lifeSaver,
+        onFlip: function(){
+            var oModel = sap.ui.getCore().getModel();
+            var oAnuModel = sap.ui.getCore().getModel("fire");
+            sap.ui.getCore().setModel(oAnuModel);
+            sap.ui.getCore().setModel(oModel, "fire");
+        },
+        index: undefined,
+        onDelete: function(){
+            if(this.index === undefined) {
+                MessageToast.show("Please Select a Row");
+                return;
+            }
+            var oModel = sap.ui.getCore().getModel();
+            var aData = oModel.getProperty("/empTab");
+            aData.splice(this.index, 1);
+            oModel.setProperty("/empTab", aData);
+            this.index = undefined;
+        },
+        onRowSelect: function(oEvent){
+            console.log(oEvent.getParameter("rowContext").getPath());
+            var sPath = oEvent.getParameter("rowContext").getPath();
+            this.index = oEvent.getParameter("rowIndex");
+            this.getView().byId("myForm").bindElement(sPath);
+
+        },
 		onBeforeRendering: function() {
 			//if(checkings....)
 			this.oView.byId("MyButton").setEnabled(false);
